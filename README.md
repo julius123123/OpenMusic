@@ -23,3 +23,101 @@ A RESTful API for managing music albums, playlists, and user interactions built 
 2. PostgreSQL (v12 or higher)
 3. Redis server
 4. RabbitMQ server
+
+## Installation
+1. Clone the repository
+    ```
+    git clone <repository-url>
+    cd OpenMusic
+    ```
+
+2. Install dependencies
+   ```
+   npm install
+   ```
+3. Set up environment variables
+   Create a .env file in the root directory
+   ```
+    #SERVER
+    PORT=5000
+    HOST=localhost
+    
+    #PosetgreSQL
+    PGUSER=your_db_user
+    PGHOST=localhost
+    PGPASSWORD=your_db_password
+    PGDATABASE=openmusic
+    PGPORT=5432
+    
+    #JWT
+    ACCESS_TOKEN_KEY=your_access_token_secret
+    REFRESH_TOKEN_KEY=your_refresh_token_secret
+    ACCESS_TOKEN_AGE=1800
+    
+    #RABBITMQ
+    RABBITMQ_SERVER=amqp://localhost
+    #REDIS
+    REDIS_SERVER=localhost
+       
+   ```
+## Run
+1. Start the server, at root directory
+   ```
+    npm start
+   ```
+
+2. Start the consumer program
+   ```
+   cd consumer
+   node src/consumer.js
+   ```
+## API Endpoints
+### Auth
++ POST /authentications - Login and get access token
++ PUT /authentications - Refresh access token
++ DELETE /authentications - Logout
+### Users
++ POST /users - Register new user
++ GET /users/{id} - Get user by ID
+### Albums
++ POST /albums - Create album
++ GET /albums/{id} - Get album by ID
++ PUT /albums/{id} - Update album
++ DELETE /albums/{id} - Delete album
++ POST /albums/{id}/covers - Upload album cover
++ POST /albums/{id}/likes - Like an album
++ DELETE /albums/{id}/likes - Unlike an album
++ GET /albums/{id}/likes - Get album likes count
+### Songs
++ POST /songs - Create song
++ GET /songs - Get all songs (with optional query filters)
++ GET /songs/{id} - Get song by ID
++ PUT /songs/{id} - Update song
++ DELETE /songs/{id} - Delete song
+### Playlists
++ POST /playlists - Create playlist
++ GET /playlists - Get user's playlists
++ DELETE /playlists/{id} - Delete playlist
++ POST /playlists/{id}/songs - Add song to playlist
++ GET /playlists/{id}/songs - Get playlist songs
++ DELETE /playlists/{id}/songs - Remove song from playlist
+### Collaborations
++ POST /collaborations - Add collaborator to playlist
++ DELETE /collaborations - Remove collaborator
+### Exports
+POST /export/playlists/{playlistId} - Export playlist via email (async)
+### Activities
++ GET /playlists/{id}/activities - Get playlist activity logs
+
+## Authentication
+This app uses JWT for authentication. User register through POST /users and login with POST /authentications. This will return accessToken and refreshToken. The accessToken is used in the request header for accessing protected resource. The refreshToken is used to get a new accessToken when it expired.
+
+##  Server-Side Caching (Redis)
+Album likes are cached in Redis for improved performance:
+
+Cache Key Pattern: like:{albumId}
+Cache Duration: 30 minutes (1800 seconds)
+Cache Header: Responses from cache include X-Data-Source: cache header
+
+## Asynchronous Email Export (RabbitMQ)
+Playlist exports are processed asynchronously using RabbitMQ.
